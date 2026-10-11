@@ -1,10 +1,10 @@
-// import { RefreshTimer } from "@/components/RefreshTimer";
-
 export default async function Page() {
   const spreadsheetId = '168HtZa-oiN85kgkzuRt8udLDUJAuX4Ael3nNEGUNhCA';
   const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json`;
 
-  const res = await fetch(url);
+  const res = await fetch(url,  {
+  next: { revalidate: 60 },
+});
   const text = await res.text();
 
   const json = JSON.parse(text.substring(47, text.length - 2));
@@ -18,28 +18,13 @@ export default async function Page() {
     name: row[2]
   }));
 
-  // const formatDate = (raw) => {
-  //   if (!raw) return 'N/A';
-  //   const matches = raw.match(/\d+/g);
-  //   if (!matches) return raw;
-
-  //   const [year, month, day, hours24, minutes, seconds] = matches;
-  //   const hours12 = String((parseInt(hours24, 10) % 12) || 12).padStart(2, '0');
-  //   const pad = (num) => String(num).padStart(2, '0');
-
-  //   const adjustedMonth = pad(String(parseInt(month, 10) + 1));
-
-  //   return `${pad(day)}/${adjustedMonth}/${year} ${hours12}:${pad(minutes)}:${pad(seconds)}`;
-  // };
-
   const sortedRows = [...filteredRows].sort((b, a) => (b.time || 0) - (a.time || 0));
   const highestScore = Math.min(...filteredRows.map((item) => item.time));
   const topper = sortedRows[0];
 
   return (
     <main className="min-h-screen bg-slate-50 p-4 md:p-8 text-slate-800">
-      {/* <RefreshTimer intervalMs="{10000}"/> */}
-      <div className="max-w-6xl mx-auto space-y-8">
+<div className="max-w-6xl mx-auto space-y-8">
                 <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-5 gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
