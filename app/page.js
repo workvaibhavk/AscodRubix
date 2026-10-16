@@ -1,27 +1,11 @@
 
-type Participant = {
-  time: number;
-  enrollmentNo: string;
-  name: string;
-  email: string;
-  contact: string;
-  dept: string;
-  year: string;
-};
-
 const NOT_ATTEMPTED = 9999;
 
-function formatTime(seconds: number) {
+function formatTime(seconds) {
   return `${Math.floor(seconds / 60)}min ${seconds % 60}sec`;
 }
 
-function PodiumCard({
-  participant,
-  rank,
-}: {
-  participant: Participant;
-  rank: 1 | 2 | 3;
-}) {
+function PodiumCard({ participant, rank }) {
   const styles = {
     1: {
       card: "border-amber-300 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-white",
@@ -55,9 +39,7 @@ function PodiumCard({
       <div className="relative">
         <div className="mb-4 flex items-center justify-between gap-2">
           <span className="text-2xl">{styles.medal}</span>
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-bold ${styles.badge}`}
-          >
+          <span className={`rounded-full px-3 py-1 text-xs font-bold ${styles.badge}`}>
             {styles.title}
           </span>
         </div>
@@ -98,6 +80,7 @@ export default async function Page() {
   }
 
   const responseText = await res.text();
+
   const jsonText = responseText.substring(
     responseText.indexOf("{"),
     responseText.lastIndexOf("}") + 1
@@ -105,14 +88,13 @@ export default async function Page() {
 
   const json = JSON.parse(jsonText);
 
-  const rows = json.table.rows.map(
-    (row: { c: ({ v: unknown } | null)[] }) =>
-      (row.c ?? []).map((cell) => cell?.v ?? null)
+  const rows = json.table.rows.map((row) =>
+    (row.c ?? []).map((cell) => cell?.v ?? null)
   );
 
-  const participants: Participant[] = rows
-    .filter((row: unknown[]) => row.some((cell) => cell !== null))
-    .map((row: unknown[]) => {
+  const participants = rows
+    .filter((row) => row.some((cell) => cell !== null))
+    .map((row) => {
       const parsedTime = Number(row[0]);
 
       return {
@@ -131,8 +113,7 @@ export default async function Page() {
       };
     });
 
-  // Valid attempts first, fastest time wins.
-  // Unattempted participants (9999) appear at the bottom.
+  // Fastest time first; 9999 entries appear last.
   const sortedRows = [...participants].sort(
     (a, b) => a.time - b.time
   );
@@ -177,9 +158,7 @@ export default async function Page() {
                 Lowest Time
               </p>
               <p className="mt-1 text-xl font-black text-amber-600">
-                {lowestTime === null
-                  ? "—"
-                  : `${lowestTime}s`}
+                {lowestTime === null ? "—" : `${lowestTime}s`}
               </p>
             </div>
 
@@ -190,6 +169,7 @@ export default async function Page() {
                   {attemptedRows.length} / {participants.length}
                 </span>
               </div>
+
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div
                   className="h-full rounded-full bg-emerald-500 transition-all"
@@ -207,7 +187,7 @@ export default async function Page() {
         </header>
 
         {/* Winners podium */}
-        {attemptedRows.length > 0 && (
+        {attemptedRows.length > 0 ? (
           <section className="space-y-4">
             <div>
               <h2 className="text-xl font-extrabold text-slate-900">
@@ -219,24 +199,14 @@ export default async function Page() {
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              {topper && (
-                <PodiumCard participant={topper} rank={1} />
-              )}
-              {secondTop && (
-                <PodiumCard participant={secondTop} rank={2} />
-              )}
-              {thirdTop && (
-                <PodiumCard participant={thirdTop} rank={3} />
-              )}
+              {topper && <PodiumCard participant={topper} rank={1} />}
+              {secondTop && <PodiumCard participant={secondTop} rank={2} />}
+              {thirdTop && <PodiumCard participant={thirdTop} rank={3} />}
             </div>
           </section>
-        )}
-
-        {attemptedRows.length === 0 && (
+        ) : (
           <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-            <p className="text-lg font-bold text-slate-700">
-              No attempts yet
-            </p>
+            <p className="text-lg font-bold text-slate-700">No attempts yet</p>
             <p className="mt-1 text-sm text-slate-500">
               Winners will appear here after participants submit their times.
             </p>
@@ -247,13 +217,12 @@ export default async function Page() {
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col justify-between gap-1 border-b border-slate-200 bg-slate-50/70 p-4 sm:flex-row sm:items-center">
             <div>
-              <h3 className="font-bold text-slate-800">
-                All Submissions
-              </h3>
+              <h3 className="font-bold text-slate-800">All Submissions</h3>
               <p className="mt-1 text-xs text-slate-500">
                 Fastest times first · Not attempted entries last
               </p>
             </div>
+
             <span className="text-xs font-semibold text-slate-500">
               {attemptedRows.length} completed ·{" "}
               {participants.length - attemptedRows.length} pending
@@ -273,12 +242,8 @@ export default async function Page() {
 
               <tbody className="divide-y divide-slate-100">
                 {sortedRows.map((participant, index) => {
-                  const isPending =
-                    participant.time === NOT_ATTEMPTED;
-
-                  const rank = isPending
-                    ? null
-                    : index + 1;
+                  const isPending = participant.time === NOT_ATTEMPTED;
+                  const rank = isPending ? null : index + 1;
 
                   const rankStyle =
                     rank === 1
@@ -309,11 +274,7 @@ export default async function Page() {
                           <span
                             className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-base ${rankStyle}`}
                           >
-                            {rank === 1
-                              ? "🥇"
-                              : rank === 2
-                                ? "🥈"
-                                : "🥉"}
+                            {rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"}
                           </span>
                         ) : (
                           <span
@@ -341,11 +302,7 @@ export default async function Page() {
                         ) : (
                           <span
                             className={`font-mono text-xs font-bold ${
-                              rank === 1
-                                ? "text-amber-700"
-                                : rank === 2
-                                  ? "text-slate-600"
-                                  : "text-slate-600"
+                              rank === 1 ? "text-amber-700" : "text-slate-600"
                             }`}
                           >
                             {formatTime(participant.time)}
@@ -365,9 +322,7 @@ export default async function Page() {
                   <td colSpan={2} className="px-5 py-4 text-right">
                     Best time:{" "}
                     <span className="text-amber-700">
-                      {lowestTime === null
-                        ? "No attempts"
-                        : formatTime(lowestTime)}
+                      {lowestTime === null ? "No attempts" : formatTime(lowestTime)}
                     </span>
                   </td>
                 </tr>
